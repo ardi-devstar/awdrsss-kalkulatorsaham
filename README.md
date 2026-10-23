@@ -1,2 +1,0 @@
-# awdrsss-kalkulatorsaham
-Happy cuan
