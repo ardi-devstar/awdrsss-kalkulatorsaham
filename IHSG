@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Harga Wajar Saham PBV - IHSG</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            800: '#0f172a',
+                            900: '#0b1329',
+                            950: '#060a17',
+                        },
+                        emerald: {
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        /* Custom scrollbar for preset list */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between antialiased">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-emerald-500 to-teal-400 p-2.5 rounded-xl shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid me-0.5 fa-chart-line text-slate-950 text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-slate-100">ValuasiSaham<span class="text-emerald-400">.id</span></h1>
+                    <p class="text-xs text-slate-400">Kalkulator Harga Wajar PBV (IHSG)</p>
+                </div>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 text-xs text-slate-400 bg-slate-800/60 px-3 py-1.5 rounded-full border border-slate-700/50">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Database Preset IHSG Terbarui
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
+        
+        <!-- Top Info Banner -->
+        <div class="mb-8 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 border border-slate-800 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white mb-1">Hitung Nilai Intrinsik Saham dengan Metode PBV Band</h2>
+                    <p class="text-sm text-slate-400 max-w-2xl">
+                        Metode Price to Book Value (PBV) membandingkan harga saham dengan Nilai Buku per Lembar (BVPS). Sangat cocok digunakan untuk sektor perbankan, finansial, dan saham berbasis aset.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Preset & Form Input (5 cols) -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <!-- Quick Preset Selector -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bolt text-amber-400"></i> Preset Saham Populer IHSG
+                        </label>
+                        <span class="text-xs text-slate-500">Klik untuk isi otomatis</span>
+                    </div>
+                    
+                    <!-- Search inside preset -->
+                    <div class="relative mb-3">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="text" id="presetSearch" placeholder="Cari kode saham (misal: BBCA, TLKM)..." 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                            onkeyup="filterPresets()">
+                    </div>
+
+                    <!-- Preset Badges Grid -->
+                    <div id="presetContainer" class="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
+                        <!-- Presets loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- Input Form Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative">
+                    <h2 class="text-lg font-bold text-slate-100 mb-5 flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <i class="fa-solid fa-sliders text-emerald-400"></i> Parameter Input
+                    </h2>
+
+                    <form id="valuationForm" onsubmit="event.preventDefault();" class="space-y-4">
+                        
+                        <!-- Stock Code / Name -->
+                        <div>
+                            <label for="stockCode" class="block text-xs font-medium text-slate-300 mb-1">
+                                Kode / Nama Saham
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 font-semibold text-sm">
+                                    <i class="fa-solid fa-tag"></i>
+                                </span>
+                                <input type="text" id="stockCode" value="BBCA" placeholder="Contoh: BBCA" 
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-slate-100 font-semibold uppercase placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm"
+                                    oninput="calculateValuation()">
+                            </div>
+                        </div>
+
+                        <!-- Current Share Price (Rp) -->
+                        <div>
+                            <label for="currentPrice" class="block text-xs font-medium text-slate-300 mb-1">
+                                Harga Saham Saat Ini (Rp)
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-medium text-sm">
+                                    Rp
+                                </span>
+                                <input type="number" id="currentPrice" value="10100" min="1" placeholder="10100" 
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-100 font-semibold placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm"
+                                    oninput="calculateValuation()">
+                            </div>
+                        </div>
+
+                        <!-- Book Value Per Share / BVPS (Rp) -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="bvps" class="block text-xs font-medium text-slate-300">
+                                    Book Value Per Share / BVPS (Rp)
+                                </label>
+                                <span class="text-[10px] text-slate-500" title="Nilai Ekuitas dibagi Total Lembar Saham">Nilai Buku/Lembar</span>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-medium text-sm">
+                                    Rp
+                                </span>
+                                <input type="number" id="bvps" value="2115" min="1" step="any" placeholder="2115" 
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-100 font-semibold placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm"
+                                    oninput="calculateValuation()">
+                            </div>
+                        </div>
+
+                        <!-- Historical Average PBV Band (x) -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="avgPbv" class="block text-xs font-medium text-slate-300">
+                                    PBV Band Rata-rata / Historical PBV (x)
+                                </label>
+                                <span class="text-[10px] text-slate-500">Rata-rata 3-5 Thn</span>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="avgPbv" value="4.8" min="0.1" step="0.01" placeholder="4.8" 
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-slate-100 font-semibold placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm"
+                                    oninput="calculateValuation()">
+                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 font-medium text-sm">
+                                    x
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Reset / Clear Button -->
+                        <div class="pt-2">
+                            <button type="button" onclick="resetForm()" 
+                                class="w-full py-2 px-4 rounded-xl border border-slate-800 text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-rotate-left"></i> Reset Parameter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: Real-time Valuation Output (7 cols) -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Valuation Result Summary Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                    
+                    <!-- Header status badge -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-800">
+                        <div>
+                            <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Hasil Analisis Valuasi</span>
+                            <h3 id="displayStockTitle" class="text-2xl font-black text-white tracking-tight">BBCA</h3>
+                        </div>
+                        <div id="valuationBadge" class="px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg transition-all">
+                            <!-- Status Badge JS -->
+                        </div>
+                    </div>
+
+                    <!-- Main Metric Cards Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        
+                        <!-- Target Fair Value -->
+                        <div class="bg-slate-950/70 border border-slate-800/80 p-4 rounded-xl relative">
+                            <p class="text-xs text-slate-400 font-medium mb-1">Harga Wajar (Fair Value)</p>
+                            <p id="fairValueDisplay" class="text-2xl font-extrabold text-emerald-400">Rp 10.152</p>
+                            <p class="text-[11px] text-slate-500 mt-1">Rumus: BVPS × PBV Rata-rata</p>
+                        </div>
+
+                        <!-- Current Price & Current PBV -->
+                        <div class="bg-slate-950/70 border border-slate-800/80 p-4 rounded-xl">
+                            <p class="text-xs text-slate-400 font-medium mb-1">Harga Saat Ini vs PBV Sekarang</p>
+                            <div class="flex items-baseline gap-2">
+                                <p id="currentPriceDisplay" class="text-2xl font-extrabold text-slate-100">Rp 10.100</p>
+                                <span id="currentPbvDisplay" class="text-xs font-semibold text-slate-400">(4.78x)</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">PBV saat ini vs Histori (<span id="avgPbvTag">4.80x</span>)</p>
+                        </div>
+
+                        <!-- Margin of Safety (MOS) -->
+                        <div class="bg-slate-950/70 border border-slate-800/80 p-4 rounded-xl">
+                            <div class="flex items-center justify-between">
+                                <p class="text-xs text-slate-400 font-medium mb-1">Margin of Safety (MOS)</p>
+                                <i class="fa-solid fa-shield-halved text-slate-500 text-xs" title="Tingkat Diskon/Perlindungan Risiko"></i>
+                            </div>
+                            <p id="mosDisplay" class="text-xl font-bold text-slate-100">+0,51%</p>
+                            <p class="text-[11px] text-slate-500 mt-1">Batas aman dari overvaluation</p>
+                        </div>
+
+                        <!-- Potential Upside / Downside -->
+                        <div class="bg-slate-950/70 border border-slate-800/80 p-4 rounded-xl">
+                            <div class="flex items-center justify-between">
+                                <p class="text-xs text-slate-400 font-medium mb-1">Potensi Return (Upside/Downside)</p>
+                                <i id="upsideIcon" class="fa-solid fa-arrow-trend-up text-xs"></i>
+                            </div>
+                            <p id="potentialDisplay" class="text-xl font-bold text-slate-100">+0,51%</p>
+                            <p class="text-[11px] text-slate-500 mt-1">Jarak harga sekarang ke harga wajar</p>
+                        </div>
+                    </div>
+
+                    <!-- Visual Meter / Valuation Bar -->
+                    <div class="space-y-2 mb-6">
+                        <div class="flex justify-between items-center text-xs font-semibold">
+                            <span class="text-emerald-400">Undervalued</span>
+                            <span class="text-slate-400">Fair Value</span>
+                            <span class="text-rose-400">Overvalued</span>
+                        </div>
+                        
+                        <!-- Visual Gauge Bar -->
+                        <div class="relative w-full h-4 bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5 flex">
+                            <div class="h-full bg-emerald-500/30 rounded-l-full w-1/3 border-r border-slate-800/50"></div>
+                            <div class="h-full bg-amber-500/20 w-1/3 border-r border-slate-800/50"></div>
+                            <div class="h-full bg-rose-500/20 rounded-r-full w-1/3"></div>
+                            
+                            <!-- Indicator Pointer -->
+                            <div id="gaugePointer" class="absolute top-0 bottom-0 w-3 bg-white rounded-full shadow-md shadow-black transition-all duration-300 transform -translate-x-1/2 border border-slate-900" style="left: 50%;"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>Diskon &gt; 15%</span>
+                            <span>Rentang Wajar (-15% s/d +15%)</span>
+                            <span>Premium &gt; 15%</span>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Analysis Narrative -->
+                    <div id="analysisSummaryCard" class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 leading-relaxed">
+                        <h4 class="font-bold text-slate-200 mb-1 flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-circle-info text-sky-400"></i> Kesimpulan & Narrative Investasi
+                        </h4>
+                        <p id="analysisText">
+                            Memuat analisis...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Mathematical Breakdown Formula Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                    <h3 class="text-sm font-bold text-slate-200 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-indigo-400"></i> Rincian Rumus Perhitungan
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/60">
+                            <p class="font-semibold text-slate-400 mb-1">1. Harga Wajar PBV</p>
+                            <p class="font-mono text-slate-200" id="formulaFairValue">BVPS × PBV Avg</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/60">
+                            <p class="font-semibold text-slate-400 mb-1">2. Margin of Safety (MOS)</p>
+                            <p class="font-mono text-slate-200" id="formulaMOS">((Harga Wajar - Harga) / Harga Wajar) × 100%</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-6 mt-12 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4">
+            <p class="mb-1">© 2026 ValuasiSaham.id — Kalkulator Harga Wajar Saham IHSG</p>
+            <p class="text-[11px] text-slate-600">Disclaimer: Hasil perhitungan kalkulator ini bersifat edukatif dan simulasi finansial. Bukan merupakan ajakan mutlak untuk membeli atau menjual saham.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Database Preset Saham IHSG Populer (Estimasi Data Terkini)
+        const ihsgPresets = [
+            { code: 'BBCA', name: 'Bank Central Asia Tbk', price: 10100, bvps: 2115, avgPbv: 4.80 },
+            { code: 'BBRI', name: 'Bank Rakyat Indonesia Tbk', price: 4750, bvps: 2120, avgPbv: 2.45 },
+            { code: 'BMRI', name: 'Bank Mandiri Tbk', price: 6850, bvps: 2850, avgPbv: 2.30 },
+            { code: 'BBNI', name: 'Bank Negara Indonesia Tbk', price: 5200, bvps: 3820, avgPbv: 1.35 },
+            { code: 'TLKM', name: 'Telkom Indonesia Tbk', price: 2850, bvps: 1510, avgPbv: 2.40 },
+            { code: 'ASII', name: 'Astra International Tbk', price: 5050, bvps: 5100, avgPbv: 1.25 },
+            { code: 'ICBP', name: 'Indofood CBP Sukses Makmur Tbk', price: 11400, bvps: 3650, avgPbv: 3.10 },
+            { code: 'UNVR', name: 'Unilever Indonesia Tbk', price: 2250, bvps: 92, avgPbv: 25.00 },
+            { code: 'PTBA', name: 'Bukit Asam Tbk', price: 2680, bvps: 1680, avgPbv: 1.65 },
+            { code: 'ADRO', name: 'Adaro Energy Indonesia Tbk', price: 3650, bvps: 2550, avgPbv: 1.30 },
+            { code: 'AMRT', name: 'Sumber Alfaria Trijaya Tbk', price: 2950, bvps: 320, avgPbv: 9.20 },
+            { code: 'PGAS', name: 'Perusahaan Gas Negara Tbk', price: 1520, bvps: 2150, avgPbv: 0.85 }
+        ];
+
+        // Format Currency Helper
+        function formatRp(number) {
+            if (isNaN(number) || !isFinite(number)) return 'Rp 0';
+            return 'Rp ' + Math.round(number).toLocaleString('id-ID');
+        }
+
+        // Format Percentage
+        function formatPercent(number) {
+            if (isNaN(number) || !isFinite(number)) return '0.00%';
+            const sign = number > 0 ? '+' : '';
+            return sign + number.toFixed(2).replace('.', ',') + '%';
+        }
+
+        // Load Presets to UI
+        function loadPresets(items = ihsgPresets) {
+            const container = document.getElementById('presetContainer');
+            container.innerHTML = '';
+
+            items.forEach(stock => {
+                const badge = document.createElement('button');
+                badge.type = 'button';
+                badge.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800/80 hover:bg-emerald-500/20 hover:border-emerald-500/50 border border-slate-700/60 text-slate-200 hover:text-emerald-400 transition-all flex items-center gap-1.5';
+                badge.innerHTML = `<span>${stock.code}</span><span class="text-[10px] text-slate-400 font-normal">PBV ${stock.avgPbv}x</span>`;
+                badge.onclick = () => selectPreset(stock);
+                container.appendChild(badge);
+            });
+        }
+
+        // Filter Preset by Search
+        function filterPresets() {
+            const query = document.getElementById('presetSearch').value.toUpperCase();
+            const filtered = ihsgPresets.filter(s => s.code.includes(query) || s.name.toUpperCase().includes(query));
+            loadPresets(filtered);
+        }
+
+        // Select Preset
+        function selectPreset(stock) {
+            document.getElementById('stockCode').value = stock.code;
+            document.getElementById('currentPrice').value = stock.price;
+            document.getElementById('bvps').value = stock.bvps;
+            document.getElementById('avgPbv').value = stock.avgPbv;
+            calculateValuation();
+        }
+
+        // Main Calculation Logic
+        function calculateValuation() {
+            const code = (document.getElementById('stockCode').value || 'SAHAM').toUpperCase();
+            const price = parseFloat(document.getElementById('currentPrice').value) || 0;
+            const bvps = parseFloat(document.getElementById('bvps').value) || 0;
+            const avgPbv = parseFloat(document.getElementById('avgPbv').value) || 0;
+
+            // Update Stock Title
+            document.getElementById('displayStockTitle').innerText = code;
+            document.getElementById('avgPbvTag').innerText = avgPbv.toFixed(2) + 'x';
+
+            if (price <= 0 || bvps <= 0 || avgPbv <= 0) {
+                renderInvalidState();
+                return;
+            }
+
+            // Calculations
+            const fairValue = bvps * avgPbv;
+            const currentPbv = price / bvps;
+            
+            // MOS % = ((FairValue - CurrentPrice) / FairValue) * 100
+            const mos = ((fairValue - price) / fairValue) * 100;
+            
+            // Upside/Downside % = ((FairValue - CurrentPrice) / CurrentPrice) * 100
+            const upside = ((fairValue - price) / price) * 100;
+
+            // UI Updates
+            document.getElementById('fairValueDisplay').innerText = formatRp(fairValue);
+            document.getElementById('currentPriceDisplay').innerText = formatRp(price);
+            document.getElementById('currentPbvDisplay').innerText = `(${currentPbv.toFixed(2)}x PBV)`;
+            
+            document.getElementById('mosDisplay').innerText = formatPercent(mos);
+            document.getElementById('potentialDisplay').innerText = formatPercent(upside);
+
+            // Formula Info Cards
+            document.getElementById('formulaFairValue').innerText = `Rp ${bvps.toLocaleString('id-ID')} × ${avgPbv} = ${formatRp(fairValue)}`;
+            document.getElementById('formulaMOS').innerText = `((${formatRp(fairValue)} - ${formatRp(price)}) / ${formatRp(fairValue)}) × 100% = ${mos.toFixed(2)}%`;
+
+            // Status Determination & UI Formatting
+            const badge = document.getElementById('valuationBadge');
+            const gaugePointer = document.getElementById('gaugePointer');
+            const upsideIcon = document.getElementById('upsideIcon');
+            const analysisText = document.getElementById('analysisText');
+            const analysisCard = document.getElementById('analysisSummaryCard');
+
+            // Set Gauge Pointer position (0% - 100%)
+            // MOS > +20% -> Undervalued (left side 10-33%)
+            // MOS between -15% & +15% -> Fair (middle 33-66%)
+            // MOS < -15% -> Overvalued (right side 66-90%)
+            let pointerPos = 50;
+            if (mos > 0) {
+                // Higher MOS -> More left
+                pointerPos = Math.max(10, 50 - (mos * 1.2));
+            } else {
+                // Negative MOS -> More right
+                pointerPos = Math.min(90, 50 + (Math.abs(mos) * 1.2));
+            }
+            gaugePointer.style.left = `${pointerPos}%`;
+
+            if (mos >= 15) {
+                // Highly Undervalued (Murah)
+                badge.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-emerald-500/10";
+                badge.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Undervalued (Murah)`;
+                
+                document.getElementById('mosDisplay').className = "text-xl font-bold text-emerald-400";
+                document.getElementById('potentialDisplay').className = "text-xl font-bold text-emerald-400";
+                upsideIcon.className = "fa-solid fa-arrow-trend-up text-emerald-400 text-xs";
+
+                analysisCard.className = "bg-emerald-950/30 border border-emerald-800/50 rounded-xl p-4 text-xs text-slate-300 leading-relaxed";
+                analysisText.innerHTML = `
+                    Saham <b class="text-white">${code}</b> saat ini diperdagangkan pada <b class="text-emerald-400">${formatRp(price)}</b> (${currentPbv.toFixed(2)}x PBV), berada <span class="text-emerald-400 font-semibold">di bawah harga wajarnya ${formatRp(fairValue)}</span> (berdasarkan rata-rata PBV ${avgPbv}x). 
+                    Terdapat diskon Margin of Safety (MOS) sebesar <b class="text-emerald-400">${mos.toFixed(2)}%</b>. Ini mengindikasikan saham berada dalam area <i>Undervalued</i> dengan batas perlindungan risiko yang relatif baik.
+                `;
+            } else if (mos <= -15) {
+                // Overvalued (Mahal)
+                badge.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-rose-500/10";
+                badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400"></i> Overvalued (Mahal)`;
+                
+                document.getElementById('mosDisplay').className = "text-xl font-bold text-rose-400";
+                document.getElementById('potentialDisplay').className = "text-xl font-bold text-rose-400";
+                upsideIcon.className = "fa-solid fa-arrow-trend-down text-rose-400 text-xs";
+
+                analysisCard.className = "bg-rose-950/30 border border-rose-800/50 rounded-xl p-4 text-xs text-slate-300 leading-relaxed";
+                analysisText.innerHTML = `
+                    Saham <b class="text-white">${code}</b> diperdagangkan pada <b class="text-rose-400">${formatRp(price)}</b> (${currentPbv.toFixed(2)}x PBV), yang mana <span class="text-rose-400 font-semibold">lebih tinggi dari harga wajarnya ${formatRp(fairValue)}</span>.
+                    Margin of Safety bernilai negatif (<b class="text-rose-400">${mos.toFixed(2)}%</b>), menunjukkan harga saham saat ini diperdagangkan di atas rerata valuasi historisnya (<i>Premium/Overvalued</i>). Investor disarankan lebih berhati-hati.
+                `;
+            } else {
+                // Fair Value (Wajar)
+                badge.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-amber-500/10";
+                badge.innerHTML = `<i class="fa-solid fa-scale-balanced text-amber-400"></i> Fair Value (Harga Wajar)`;
+                
+                document.getElementById('mosDisplay').className = "text-xl font-bold text-amber-400";
+                document.getElementById('potentialDisplay').className = "text-xl font-bold text-amber-400";
+                upsideIcon.className = "fa-solid fa-minus text-amber-400 text-xs";
+
+                analysisCard.className = "bg-amber-950/30 border border-amber-800/50 rounded-xl p-4 text-xs text-slate-300 leading-relaxed";
+                analysisText.innerHTML = `
+                    Saham <b class="text-white">${code}</b> saat ini diperdagangkan mendekati nilai wajarnya yaitu <b class="text-amber-400">${formatRp(fairValue)}</b> (${avgPbv}x PBV). 
+                    Harga saat ini (<b class="text-white">${formatRp(price)}</b>) mencerminkan valuasi wajar pasar. Margin of Safety relatif netral (<b class="text-amber-400">${mos.toFixed(2)}%</b>).
+                `;
+            }
+        }
+
+        function renderInvalidState() {
+            document.getElementById('fairValueDisplay').innerText = 'Rp 0';
+            document.getElementById('mosDisplay').innerText = '0.00%';
+            document.getElementById('potentialDisplay').innerText = '0.00%';
+            document.getElementById('valuationBadge').className = 'hidden';
+            document.getElementById('analysisText').innerText = 'Harap masukkan nilai parameter angka yang valid dan lebih dari 0.';
+        }
+
+        function resetForm() {
+            document.getElementById('stockCode').value = '';
+            document.getElementById('currentPrice').value = '';
+            document.getElementById('bvps').value = '';
+            document.getElementById('avgPbv').value = '';
+            renderInvalidState();
+        }
+
+        // Initialize on Load
+        window.onload = function() {
+            loadPresets();
+            calculateValuation(); // Calculate BBCA by default
+        };
+    </script>
+</body>
+</html>
